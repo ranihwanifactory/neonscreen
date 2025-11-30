@@ -1,0 +1,5 @@
+{
+  "name": "NeonSquare Billboard",
+  "description": "A dynamic, New York Times Square-style digital billboard application with admin management for images and video ads.",
+  "requestFramePermissions": []
+}
