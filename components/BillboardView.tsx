@@ -34,9 +34,14 @@ const BillboardView: React.FC<BillboardViewProps> = ({ ads, onOpenAdmin }) => {
         </div>
       </div>
 
-      {/* Main Grid */}
+      {/* Main Grid 
+          Rows are now set using responsive classes to approximate square cells based on column width:
+          2 cols (Mobile) -> approx 45vw height
+          4 cols (MD) -> approx 22vw height
+          6 cols (LG) -> approx 15vw height
+      */}
       <main className="w-full max-w-[1600px] p-4 md:p-8 z-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 auto-rows-[200px] gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 auto-rows-[45vw] md:auto-rows-[22vw] lg:auto-rows-[15vw] gap-4">
             {ads.map((ad) => (
               <AdCard key={ad.id} ad={ad} />
             ))}

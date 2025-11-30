@@ -4,10 +4,10 @@ export enum AdType {
 }
 
 export enum AdSize {
-  SMALL = 'small',   // 1x1
-  WIDE = 'wide',     // 2x1
-  TALL = 'tall',     // 1x2
-  LARGE = 'large'    // 2x2
+  SQUARE = 'square',       // 1x1
+  LANDSCAPE = 'landscape', // 16:9 (approx 2x1 grid)
+  PORTRAIT = 'portrait',   // 9:16 (approx 1x2 grid)
+  BIG = 'big'              // 2x2
 }
 
 export interface Advertisement {

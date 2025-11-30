@@ -19,7 +19,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ ads, onAdd, onUpdate, o
     description: '',
     type: AdType.IMAGE,
     url: '',
-    size: AdSize.SMALL
+    size: AdSize.SQUARE
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -64,7 +64,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ ads, onAdd, onUpdate, o
       description: '',
       type: AdType.IMAGE,
       url: '',
-      size: AdSize.SMALL
+      size: AdSize.SQUARE
     });
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -203,18 +203,21 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ ads, onAdd, onUpdate, o
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">Size on Board</label>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Size & Ratio</label>
                   <select 
                     name="size" 
                     value={formData.size}
                     onChange={handleInputChange}
                     className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-2 focus:ring-neon-blue focus:outline-none"
                   >
-                    <option value={AdSize.SMALL}>Standard (1x1)</option>
-                    <option value={AdSize.WIDE}>Wide (2x1)</option>
-                    <option value={AdSize.TALL}>Tall (1x2)</option>
-                    <option value={AdSize.LARGE}>Billboard (2x2)</option>
+                    <option value={AdSize.SQUARE}>Square (1:1)</option>
+                    <option value={AdSize.LANDSCAPE}>Landscape (16:9) - Wide</option>
+                    <option value={AdSize.PORTRAIT}>Portrait (9:16) - Tall</option>
+                    <option value={AdSize.BIG}>Billboard (2x2)</option>
                   </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Select 16:9 for YouTube videos or 9:16 for Shorts/Vertical content.
+                  </p>
                 </div>
 
                 <div>

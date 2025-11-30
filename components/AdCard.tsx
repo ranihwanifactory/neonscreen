@@ -9,10 +9,10 @@ interface AdCardProps {
 const AdCard: React.FC<AdCardProps> = ({ ad }) => {
   const sizeClasses = useMemo(() => {
     switch (ad.size) {
-      case AdSize.LARGE: return 'col-span-1 md:col-span-2 row-span-2';
-      case AdSize.WIDE: return 'col-span-1 md:col-span-2 row-span-1';
-      case AdSize.TALL: return 'col-span-1 row-span-2';
-      case AdSize.SMALL: default: return 'col-span-1 row-span-1';
+      case AdSize.BIG: return 'col-span-1 md:col-span-2 row-span-2';
+      case AdSize.LANDSCAPE: return 'col-span-1 md:col-span-2 row-span-1'; // 2:1 ratio, approx 16:9
+      case AdSize.PORTRAIT: return 'col-span-1 row-span-2'; // 1:2 ratio, approx 9:16
+      case AdSize.SQUARE: default: return 'col-span-1 row-span-1';
     }
   }, [ad.size]);
 
@@ -35,15 +35,15 @@ const AdCard: React.FC<AdCardProps> = ({ ad }) => {
       return (
         <div className="w-full h-full relative overflow-hidden group">
           <iframe
-            className="w-full h-full absolute inset-0 pointer-events-none scale-125 group-hover:scale-110 transition-transform duration-700"
-            src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&playsinline=1&modestbranding=1`}
+            className="w-full h-full absolute inset-0 pointer-events-none"
+            src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&playsinline=1&modestbranding=1&iv_load_policy=3&rel=0`}
             title={ad.title}
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
           />
-          {/* Overlay to prevent interaction and add tint */}
-          <div className="absolute inset-0 bg-transparent" />
+          {/* Transparent Overlay to prevent clicking iframe directly but allow seeing it */}
+          <div className="absolute inset-0 bg-transparent z-10" />
         </div>
       );
     }
@@ -65,7 +65,7 @@ const AdCard: React.FC<AdCardProps> = ({ ad }) => {
       {renderContent()}
       
       {/* Title/Brand Overlay */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-300 z-20">
         <h3 className="text-white font-bold text-lg uppercase tracking-wider font-mono shadow-black drop-shadow-md">
           {ad.title}
         </h3>
@@ -75,10 +75,10 @@ const AdCard: React.FC<AdCardProps> = ({ ad }) => {
       </div>
 
       {/* Screen Mesh Effect */}
-      <div className="absolute inset-0 bg-[url('https://upload.wikimedia.org/wikipedia/commons/8/8c/Standard_grid.svg')] bg-[length:4px_4px] opacity-10 pointer-events-none mix-blend-overlay" />
+      <div className="absolute inset-0 bg-[url('https://upload.wikimedia.org/wikipedia/commons/8/8c/Standard_grid.svg')] bg-[length:4px_4px] opacity-10 pointer-events-none mix-blend-overlay z-30" />
       
       {/* Glass Reflection */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none z-30" />
     </div>
   );
 };

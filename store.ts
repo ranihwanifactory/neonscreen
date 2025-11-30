@@ -11,7 +11,7 @@ const INITIAL_ADS: Advertisement[] = [
     title: 'Neon Cyberpunk',
     type: AdType.IMAGE,
     url: 'https://images.unsplash.com/photo-1555680202-c86f0e12f086?q=80&w=2070&auto=format&fit=crop',
-    size: AdSize.LARGE,
+    size: AdSize.BIG,
     createdAt: Date.now(),
     description: 'Experience the future today.'
   },
@@ -20,7 +20,7 @@ const INITIAL_ADS: Advertisement[] = [
     title: 'New York Night',
     type: AdType.IMAGE,
     url: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?q=80&w=2070&auto=format&fit=crop',
-    size: AdSize.TALL,
+    size: AdSize.PORTRAIT,
     createdAt: Date.now() - 1000,
     description: 'The city that never sleeps.'
   },
@@ -29,7 +29,7 @@ const INITIAL_ADS: Advertisement[] = [
     title: 'Tech Promo',
     type: AdType.VIDEO,
     url: 'https://www.youtube.com/watch?v=LXb3EKWsInQ',
-    size: AdSize.WIDE,
+    size: AdSize.LANDSCAPE,
     createdAt: Date.now() - 2000,
     description: 'Visual fidelity test.'
   },
@@ -38,7 +38,7 @@ const INITIAL_ADS: Advertisement[] = [
     title: 'Fashion Week',
     type: AdType.IMAGE,
     url: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=1976&auto=format&fit=crop',
-    size: AdSize.SMALL,
+    size: AdSize.SQUARE,
     createdAt: Date.now() - 3000,
   }
 ];
