@@ -1,18 +1,19 @@
 import React, { useState, useRef } from 'react';
 import { Advertisement, AdType, AdSize, ADMIN_EMAIL } from '../types';
 import { fileToBase64, getYouTubeId } from '../utils';
-import { X, Upload, MonitorPlay, Image as ImageIcon, Trash2, LogOut, Loader2 } from 'lucide-react';
+import { X, Upload, MonitorPlay, Image as ImageIcon, Trash2, LogOut, Loader2, Pencil, RefreshCw } from 'lucide-react';
 
 interface AdminDashboardProps {
   ads: Advertisement[];
   onAdd: (ad: Omit<Advertisement, 'id'>) => Promise<void>;
+  onUpdate: (id: string, ad: Partial<Advertisement>) => Promise<void>;
   onRemove: (id: string, url: string) => void;
   onUpload: (file: File) => Promise<string>;
   onClose: () => void;
   onLogout: () => void;
 }
 
-const AdminDashboard: React.FC<AdminDashboardProps> = ({ ads, onAdd, onRemove, onUpload, onClose, onLogout }) => {
+const AdminDashboard: React.FC<AdminDashboardProps> = ({ ads, onAdd, onUpdate, onRemove, onUpload, onClose, onLogout }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -20,6 +21,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ ads, onAdd, onRemove, o
     url: '',
     size: AdSize.SMALL
   });
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
   
@@ -40,6 +42,31 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ ads, onAdd, onRemove, o
         alert("Failed to read file");
       }
     }
+  };
+
+  const handleEdit = (ad: Advertisement) => {
+    setEditingId(ad.id);
+    setFormData({
+      title: ad.title,
+      description: ad.description || '',
+      type: ad.type,
+      url: ad.url,
+      size: ad.size
+    });
+    // Scroll to form top if needed
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setFormData({
+      title: '',
+      description: '',
+      type: AdType.IMAGE,
+      url: '',
+      size: AdSize.SMALL
+    });
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -70,27 +97,30 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ ads, onAdd, onRemove, o
         if (!getYouTubeId(formData.url)) throw new Error("Please enter a valid YouTube URL");
       }
 
-      setUploadProgress('Saving to billboard...');
-
-      const newAd: Omit<Advertisement, 'id'> = {
-        title: formData.title,
-        description: formData.description,
-        type: formData.type,
-        url: finalUrl,
-        size: formData.size,
-        createdAt: Date.now()
-      };
-
-      await onAdd(newAd);
+      if (editingId) {
+        setUploadProgress('Updating advertisement...');
+        await onUpdate(editingId, {
+          title: formData.title,
+          description: formData.description,
+          type: formData.type,
+          url: finalUrl,
+          size: formData.size,
+        });
+      } else {
+        setUploadProgress('Saving to billboard...');
+        const newAd: Omit<Advertisement, 'id'> = {
+          title: formData.title,
+          description: formData.description,
+          type: formData.type,
+          url: finalUrl,
+          size: formData.size,
+          createdAt: Date.now()
+        };
+        await onAdd(newAd);
+      }
       
       // Reset form
-      setFormData(prev => ({
-          ...prev,
-          title: '',
-          description: '',
-          url: '', 
-      }));
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      handleCancelEdit();
       setUploadProgress('');
 
     } catch (error: any) {
@@ -129,7 +159,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ ads, onAdd, onRemove, o
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
             {/* Form Section */}
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 h-fit shadow-xl relative overflow-hidden">
+            <div className={`bg-gray-900 border ${editingId ? 'border-neon-yellow' : 'border-gray-800'} rounded-xl p-6 h-fit shadow-xl relative overflow-hidden transition-colors duration-300`}>
               {isSubmitting && (
                 <div className="absolute inset-0 bg-black/80 z-10 flex flex-col items-center justify-center">
                    <Loader2 size={40} className="text-neon-blue animate-spin mb-4" />
@@ -137,9 +167,19 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ ads, onAdd, onRemove, o
                 </div>
               )}
 
-              <h3 className="text-xl font-semibold text-neon-blue mb-6 flex items-center">
-                <Upload className="mr-2" /> Register New Ad
-              </h3>
+              <div className="flex justify-between items-center mb-6">
+                <h3 className={`text-xl font-semibold flex items-center ${editingId ? 'text-neon-yellow' : 'text-neon-blue'}`}>
+                  {editingId ? <><Pencil className="mr-2" /> Edit Ad</> : <><Upload className="mr-2" /> Register New Ad</>}
+                </h3>
+                {editingId && (
+                  <button 
+                    onClick={handleCancelEdit} 
+                    className="text-xs text-gray-400 hover:text-white underline"
+                  >
+                    Cancel Edit
+                  </button>
+                )}
+              </div>
               
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
@@ -148,14 +188,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ ads, onAdd, onRemove, o
                     <button
                       type="button"
                       onClick={() => setFormData({...formData, type: AdType.IMAGE})}
-                      className={`py-3 px-4 rounded-lg border flex items-center justify-center ${formData.type === AdType.IMAGE ? 'bg-neon-purple/20 border-neon-purple text-white' : 'border-gray-700 text-gray-500 hover:bg-gray-800'}`}
+                      className={`py-3 px-4 rounded-lg border flex items-center justify-center transition-colors ${formData.type === AdType.IMAGE ? 'bg-neon-purple/20 border-neon-purple text-white' : 'border-gray-700 text-gray-500 hover:bg-gray-800'}`}
                     >
                       <ImageIcon size={20} className="mr-2" /> Image
                     </button>
                     <button
                       type="button"
                       onClick={() => setFormData({...formData, type: AdType.VIDEO})}
-                      className={`py-3 px-4 rounded-lg border flex items-center justify-center ${formData.type === AdType.VIDEO ? 'bg-neon-pink/20 border-neon-pink text-white' : 'border-gray-700 text-gray-500 hover:bg-gray-800'}`}
+                      className={`py-3 px-4 rounded-lg border flex items-center justify-center transition-colors ${formData.type === AdType.VIDEO ? 'bg-neon-pink/20 border-neon-pink text-white' : 'border-gray-700 text-gray-500 hover:bg-gray-800'}`}
                     >
                       <MonitorPlay size={20} className="mr-2" /> Video (YT)
                     </button>
@@ -239,13 +279,24 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ ads, onAdd, onRemove, o
                   />
                 </div>
 
-                <button 
-                  type="submit" 
-                  disabled={isSubmitting}
-                  className="w-full bg-gradient-to-r from-neon-blue to-neon-purple text-white font-bold py-3 px-4 rounded-lg hover:opacity-90 transition transform hover:scale-[1.02] disabled:opacity-50"
-                >
-                  Publish to Board
-                </button>
+                <div className="flex space-x-3">
+                  {editingId && (
+                     <button 
+                      type="button" 
+                      onClick={handleCancelEdit}
+                      className="flex-1 bg-gray-700 text-white font-bold py-3 px-4 rounded-lg hover:bg-gray-600 transition"
+                    >
+                      Cancel
+                    </button>
+                  )}
+                  <button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className={`flex-1 font-bold py-3 px-4 rounded-lg hover:opacity-90 transition transform hover:scale-[1.02] disabled:opacity-50 ${editingId ? 'bg-neon-yellow text-black' : 'bg-gradient-to-r from-neon-blue to-neon-purple text-white'}`}
+                  >
+                    {isSubmitting ? 'Processing...' : (editingId ? 'Update Ad' : 'Publish to Board')}
+                  </button>
+                </div>
               </form>
             </div>
 
@@ -262,12 +313,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ ads, onAdd, onRemove, o
                           <th className="px-6 py-4">Title</th>
                           <th className="px-6 py-4">Type</th>
                           <th className="px-6 py-4">Size</th>
-                          <th className="px-6 py-4">Action</th>
+                          <th className="px-6 py-4 text-right">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-800">
                         {ads.map((ad) => (
-                          <tr key={ad.id} className="hover:bg-gray-800/50 transition">
+                          <tr key={ad.id} className={`hover:bg-gray-800/50 transition ${editingId === ad.id ? 'bg-gray-800/80 border-l-4 border-neon-yellow' : ''}`}>
                             <td className="px-6 py-4">
                               <div className="w-16 h-10 bg-gray-800 rounded overflow-hidden">
                                 {ad.type === AdType.IMAGE ? (
@@ -286,10 +337,18 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ ads, onAdd, onRemove, o
                               </span>
                             </td>
                             <td className="px-6 py-4">{ad.size}</td>
-                            <td className="px-6 py-4">
+                            <td className="px-6 py-4 text-right space-x-2">
+                              <button 
+                                onClick={() => handleEdit(ad)}
+                                className="text-neon-yellow hover:text-yellow-300 p-2 hover:bg-yellow-900/30 rounded-full transition inline-block"
+                                title="Edit Ad"
+                              >
+                                <Pencil size={18} />
+                              </button>
                               <button 
                                 onClick={() => onRemove(ad.id, ad.url)}
-                                className="text-red-400 hover:text-red-300 p-2 hover:bg-red-900/30 rounded-full transition"
+                                className="text-red-400 hover:text-red-300 p-2 hover:bg-red-900/30 rounded-full transition inline-block"
+                                title="Delete Ad"
                               >
                                 <Trash2 size={18} />
                               </button>

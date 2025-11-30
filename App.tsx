@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAds } from './store';
 import BillboardView from './components/BillboardView';
 import AdminDashboard from './components/AdminDashboard';
 import { ADMIN_EMAIL } from './types';
 import { Lock } from 'lucide-react';
 import { auth } from './firebase';
-import { signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
+import { signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from 'firebase/auth';
 
 const App: React.FC = () => {
-  const { ads, loading, addAd, removeAd, uploadAdImage } = useAds();
+  const { ads, loading, addAd, updateAd, removeAd, uploadAdImage } = useAds();
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [user, setUser] = useState(auth.currentUser);
   
@@ -16,8 +16,16 @@ const App: React.FC = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authError, setAuthError] = useState('');
 
+  // Sync Auth State
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
+
   const handleOpenAdmin = () => {
-    if (auth.currentUser && auth.currentUser.email === ADMIN_EMAIL) {
+    if (user && user.email === ADMIN_EMAIL) {
       setIsAdminOpen(true);
     } else {
       setShowAuthModal(true);
@@ -38,7 +46,7 @@ const App: React.FC = () => {
         setIsAdminOpen(true);
       } else {
         setAuthError(`Access Denied: ${email} is not authorized.`);
-        await signOut(auth); // Log them out immediately if not admin
+        await signOut(auth);
       }
     } catch (error: any) {
       console.error(error);
@@ -48,7 +56,6 @@ const App: React.FC = () => {
 
   const handleLogout = async () => {
     await signOut(auth);
-    setUser(null);
     setIsAdminOpen(false);
   };
 
@@ -70,6 +77,7 @@ const App: React.FC = () => {
         <AdminDashboard 
           ads={ads} 
           onAdd={addAd} 
+          onUpdate={updateAd}
           onRemove={removeAd}
           onUpload={uploadAdImage}
           onClose={() => setIsAdminOpen(false)}
